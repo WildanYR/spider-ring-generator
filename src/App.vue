@@ -15,11 +15,12 @@ const pollOptionName = ref({
 });
 const msg = ref([]);
 const spiderRingFormation = ref("");
+const simpleText = ref(false);
 
 const splitPollOption = () => {
   if (!csvJson.length) return;
   csvJson.forEach((csv) => {
-    let user = `${csv.name} ${csv.username}`;
+    let user = simpleText.value ? csv.username : `${csv.name} ${csv.username}`;
     if (csv.answer === pollOptionName.value.khyterra) {
       khyterraUser.push(user);
     } else if (csv.answer === pollOptionName.value.avallon) {
@@ -49,7 +50,9 @@ const getSpiderRingFormation = () => {
   const spiderRingArray = [];
   for (let i = 0; i < lineTotal; i++) {
     const lineUser = [
-      khyterraUser[i] ? `${khyterraUser[i]} (Khyterra)` : "(Khyterra)",
+      khyterraUser[i]
+        ? `${khyterraUser[i]}${simpleText.value ? "" : " (Khyterra)"}`
+        : `${simpleText.value ? "" : "(Khyterra)"}`,
     ];
     if (innerRingTotal === 0) {
       lineUser.push(jaUser[ir] ? jaUser[ir] : "");
@@ -60,7 +63,11 @@ const getSpiderRingFormation = () => {
         ir++;
       }
     }
-    lineUser.push(avallonUser[i] ? `${avallonUser[i]} (Avallon)` : "(Avallon)");
+    lineUser.push(
+      avallonUser[i]
+        ? `${avallonUser[i]}${simpleText.value ? "" : " (Avallon)"}`
+        : `${simpleText.value ? "" : "(Avallon)"}`
+    );
     spiderRingArray.push(lineUser);
   }
   let formationStr = "";
@@ -68,20 +75,21 @@ const getSpiderRingFormation = () => {
     if (i > 0) {
       formationStr += "\n";
     }
-    formationStr += `Line ${i + 1}\nRing 1 (Tim 12)\n`;
+    if (!simpleText.value) {
+      formationStr += `Line ${i + 1}\nRing 1 (Tim 12)\n`;
+    }
     for (let j = 0; j < spiderRingArray[i].length; j++) {
-      formationStr += `Ring ${j + 2} ${spiderRingArray[i][j]}\n`;
+      const ringText = simpleText.value ? "R" : "Ring ";
+      formationStr += `${ringText}${j + 2} ${spiderRingArray[i][j]}\n`;
     }
   }
   const restOfJaUser = innerRingTotal > 0 ? jaUser.length % lineTotal : 0;
-  console.log("restOfJaUser", restOfJaUser);
-  console.log("innerRingTotal", innerRingTotal);
   if (
     khyterraUser.length > lineTotal ||
     avallonUser.length > lineTotal ||
     restOfJaUser !== 0
   ) {
-    formationStr += "\nPeserta yang tidak masuk formasi Spider Ring\n";
+    formationStr += "\nPengamat\n";
     if (khyterraUser.length > lineTotal) {
       formationStr += "\nKhyterra:\n";
       let n = 1;
@@ -215,6 +223,12 @@ const onGenerate = () => {
   >
     Generate
   </button>
+  <div>
+    <div style="display: flex; gap: 0.25rem; align-items: center">
+      <input type="checkbox" v-model="simpleText" />
+      <p>Teks formasi simpel</p>
+    </div>
+  </div>
   <template v-if="msg.length">
     <h3>INFO</h3>
     <p v-for="(m, i) in msg" :key="'info-' + i">{{ m }}</p>
