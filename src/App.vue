@@ -16,6 +16,7 @@ const pollOptionName = ref({
 const msg = ref([]);
 const spiderRingFormation = ref("");
 const simpleText = ref(false);
+const maxInnerRing = ref("0");
 
 const splitPollOption = () => {
   if (!csvJson.length) return;
@@ -58,7 +59,12 @@ const getSpiderRingFormation = () => {
       lineUser.push(jaUser[ir] ? jaUser[ir] : "");
       ir++;
     } else {
-      for (let j = 0; j < innerRingTotal; j++) {
+      const maxInnerRingInt = parseInt(maxInnerRing.value);
+      const ringTotal =
+        maxInnerRingInt === 0 || maxInnerRingInt > innerRingTotal
+          ? innerRingTotal
+          : maxInnerRingInt;
+      for (let j = 0; j < ringTotal; j++) {
         lineUser.push(jaUser[ir] ? jaUser[ir] : "");
         ir++;
       }
@@ -79,8 +85,8 @@ const getSpiderRingFormation = () => {
       formationStr += `Line ${i + 1}\nRing 1 (Tim 12)\n`;
     }
     for (let j = 0; j < spiderRingArray[i].length; j++) {
-      const ringText = simpleText.value ? "R" : "Ring ";
-      formationStr += `${ringText}${j + 2} ${spiderRingArray[i][j]}\n`;
+      const ringText = simpleText.value ? `R${j + 2}:` : `Ring ${j + 2}`;
+      formationStr += `${ringText} ${spiderRingArray[i][j]}\n`;
     }
   }
   const restOfJaUser = innerRingTotal > 0 ? jaUser.length % lineTotal : 0;
@@ -131,6 +137,7 @@ const onFileChange = (event) => {
       .map((csv) => {
         const name = [csv['"first_name"'], csv['"last_name"']].join(" ");
         const timestamp = new Date(csv['"timestamp"']).getTime();
+        const username = csv['"username"'] ? `@${csv['"username"']}` : name;
         return {
           answer: csv['"answer"'],
           username: `@${csv['"username"']}`,
@@ -215,6 +222,16 @@ const onGenerate = () => {
       v-model="pollOptionName.khyterra"
       type="text"
       placeholder="nama pilihan poll Khyterra"
+    />
+  </div>
+  <div>
+    <p style="margin-bottom: 2px; color: #424242; font-size: 0.9rem">
+      Maksimal jumlah ring akselerator (0 = sesuai jumlah peserta)
+    </p>
+    <input
+      v-model="maxInnerRing"
+      type="number"
+      placeholder="Maksimal jumlah ring akselerator"
     />
   </div>
   <button
